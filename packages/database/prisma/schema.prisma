@@ -1,0 +1,389 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================================
+// USER MANAGEMENT
+// ================================
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  phone           String?  @unique
+  passwordHash    String
+  
+  // Profile
+  firstName       String?
+  lastName        String?
+  avatar          String?
+  dateOfBirth     DateTime?
+  gender          Gender?
+  
+  // Preferences
+  preferredLanguage String @default("es")
+  timezone          String @default("America/Santo_Domingo")
+  marketingOptIn    Boolean @default(true)
+  
+  // Subscription
+  subscriptionTier  SubscriptionTier @default(BASIC)
+  subscriptionExpires DateTime?
+  
+  // Metadata
+  lastLoginAt     DateTime?
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  organizedEvents Event[] @relation("EventOrganizer")
+  tickets         Ticket[]
+  reviews         Review[]
+  favorites       UserFavorite[]
+  sessions        UserSession[]
+  
+  @@map("users")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_sessions")
+}
+
+// ================================
+// EVENT MANAGEMENT
+// ================================
+
+model Event {
+  id            String      @id @default(cuid())
+  slug          String      @unique
+  title         String
+  description   String?
+  longDescription String?
+  
+  // Scheduling
+  startDateTime DateTime
+  endDateTime   DateTime?
+  timezone      String      @default("America/Santo_Domingo")
+  
+  // Location
+  venue         Venue?      @relation(fields: [venueId], references: [id])
+  venueId       String?
+  isOnline      Boolean     @default(false)
+  onlineUrl     String?
+  
+  // Categorization
+  category      Category    @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  tags          EventTag[]  @relation("EventToEventTag")
+  
+  // Media
+  coverImage    String?
+  images        String[]
+  videos        String[]
+  
+  // Pricing & Tickets
+  ticketTypes   TicketType[]
+  maxCapacity   Int?
+  
+  // Status & Publishing
+  status        EventStatus @default(DRAFT)
+  publishedAt   DateTime?
+  
+  // SEO & Marketing
+  metaTitle     String?
+  metaDescription String?
+  socialImage   String?
+  
+  // Organizer
+  organizer     User        @relation("EventOrganizer", fields: [organizerId], references: [id])
+  organizerId   String
+  
+  // Analytics
+  viewCount     Int         @default(0)
+  shareCount    Int         @default(0)
+  
+  // Metadata
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  tickets       Ticket[]
+  reviews       Review[]
+  favorites     UserFavorite[]
+  
+  @@map("events")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  parentId    String?
+  
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  events      Event[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("categories")
+}
+
+model Venue {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  
+  // Location
+  address     String
+  city        String
+  state       String
+  country     String   @default("DO")
+  postalCode  String?
+  latitude    Float?
+  longitude   Float?
+  
+  // Contact
+  phone       String?
+  email       String?
+  website     String?
+  
+  // Capacity & Features
+  capacity    Int?
+  amenities   String[]
+  
+  // Media
+  images      String[]
+  virtualTour String?
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  events      Event[]
+  
+  @@map("venues")
+}
+
+// ================================
+// TICKETING SYSTEM
+// ================================
+
+model TicketType {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  
+  // Pricing
+  price       Decimal  @db.Decimal(10, 2)
+  currency    String   @default("DOP")
+  fees        Json?    // Service fees breakdown
+  
+  // Availability
+  totalQuantity    Int?
+  availableQuantity Int?
+  salesStartAt     DateTime?
+  salesEndAt       DateTime?
+  
+  // Restrictions
+  minQuantityPerOrder Int @default(1)
+  maxQuantityPerOrder Int @default(10)
+  
+  // Event relation
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  tickets     Ticket[]
+  
+  @@map("ticket_types")
+}
+
+model Ticket {
+  id          String       @id @default(cuid())
+  qrCode      String       @unique
+  
+  // Purchase info
+  purchasePrice Decimal    @db.Decimal(10, 2)
+  currency      String     @default("DOP")
+  fees          Json?      // Fees paid breakdown
+  
+  // Status
+  status        TicketStatus @default(VALID)
+  usedAt        DateTime?
+  refundedAt    DateTime?
+  
+  // Relations
+  event         Event        @relation(fields: [eventId], references: [id])
+  eventId       String
+  ticketType    TicketType   @relation(fields: [ticketTypeId], references: [id])
+  ticketTypeId  String
+  owner         User         @relation(fields: [ownerId], references: [id])
+  ownerId       String
+  order         Order        @relation(fields: [orderId], references: [id])
+  orderId       String
+  
+  // Metadata
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@map("tickets")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  
+  // Pricing
+  subtotal      Decimal     @db.Decimal(10, 2)
+  fees          Decimal     @db.Decimal(10, 2)
+  taxes         Decimal     @db.Decimal(10, 2) @default(0)
+  total         Decimal     @db.Decimal(10, 2)
+  currency      String      @default("DOP")
+  
+  // Payment
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod String?
+  paymentId     String?     // External payment provider ID
+  paidAt        DateTime?
+  
+  // Customer
+  customerEmail String
+  customerPhone String?
+  billingAddress Json?
+  
+  // Metadata
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  tickets       Ticket[]
+  
+  @@map("orders")
+}
+
+// ================================
+// REVIEWS & RATINGS
+// ================================
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 stars
+  title     String?
+  comment   String?
+  
+  // Relations
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([eventId, userId])
+  @@map("reviews")
+}
+
+// ================================
+// USER INTERACTIONS
+// ================================
+
+model UserFavorite {
+  id      String @id @default(cuid())
+  
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, eventId])
+  @@map("user_favorites")
+}
+
+model EventTag {
+  id      String @id @default(cuid())
+  name    String @unique
+  
+  events  Event[] @relation("EventToEventTag")
+  
+  @@map("event_tags")
+}
+
+// ================================
+// ENUMS
+// ================================
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum SubscriptionTier {
+  BASIC
+  PLUS
+  PRO
+  ENTERPRISE
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  POSTPONED
+  COMPLETED
+}
+
+enum TicketStatus {
+  VALID
+  USED
+  REFUNDED
+  TRANSFERRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+// ================================
+// INDEXES FOR PERFORMANCE
+// ================================
+
+// Add indexes for frequently queried fields
