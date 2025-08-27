@@ -160,11 +160,19 @@ export function Header() {
                           <p className="text-sm text-gray-500">{user?.email}</p>
                         </div>
                         <Link
-                          href="/perfil"
+                          href="/dashboard"
                           className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <User className="w-4 h-4 mr-3" />
+                          Mi Dashboard
+                        </Link>
+                        <Link
+                          href="/perfil"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Settings className="w-4 h-4 mr-3" />
                           Mi Perfil
                         </Link>
                         <Link
@@ -298,7 +306,7 @@ export function Header() {
                             </span>
                           )}
                         </button>
-                        <Link href="/perfil" className="btn-ghost p-2" onClick={() => setIsMenuOpen(false)}>
+                        <Link href="/dashboard" className="btn-ghost p-2" onClick={() => setIsMenuOpen(false)}>
                           <User className="w-5 h-5" />
                         </Link>
                       </div>

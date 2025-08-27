@@ -17,6 +17,7 @@ interface AuthActions {
   clearError: () => void
   checkAuth: () => Promise<void>
   refreshToken: () => Promise<void>
+  updateUser: (updates: Partial<User>) => void
 }
 
 type AuthStore = AuthState & AuthActions
@@ -139,6 +140,13 @@ export const useAuthStore = create<AuthStore>()(
           }
         } catch (error) {
           get().logout()
+        }
+      },
+
+      updateUser: (updates: Partial<User>) => {
+        const { user } = get()
+        if (user) {
+          set({ user: { ...user, ...updates } })
         }
       },
     }),
