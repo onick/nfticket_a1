@@ -45,9 +45,9 @@ const navigation = {
 }
 
 const socialLinks = [
-  { name: 'Facebook', icon: Facebook, href: 'https://facebook.com/tixdo' },
-  { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/tixdo' },
-  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/tixdo' },
+  { name: 'Facebook', icon: Facebook, href: 'https://facebook.com/nfticket' },
+  { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/nfticket' },
+  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/nfticket' },
   { name: 'YouTube', icon: Youtube, href: 'https://youtube.com/tixdo' },
 ]
 
@@ -64,7 +64,7 @@ export function Footer() {
               <div className="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
                 <Ticket className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold">TIX</span>
+              <span className="text-2xl font-bold">NFTicket</span>
             </Link>
             
             <p className="text-gray-400 leading-relaxed max-w-sm">
@@ -179,7 +179,7 @@ export function Footer() {
             <div className="mb-6 lg:mb-0">
               <h3 className="text-xl font-bold mb-2">Descarga Nuestra App</h3>
               <p className="text-gray-400">
-                Lleva TIX contigo y nunca te pierdas un evento increíble
+                Lleva NFTicket contigo y nunca te pierdas un evento increíble
               </p>
             </div>
             
@@ -209,7 +209,7 @@ export function Footer() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center space-x-6 text-gray-400 text-sm">
-              <span>© 2024 TIX. Todos los derechos reservados.</span>
+              <span>© 2024 NFTicket. Todos los derechos reservados.</span>
               <div className="flex items-center space-x-2">
                 <span>🌱</span>
                 <span>Somos Carbon-Neutral</span>

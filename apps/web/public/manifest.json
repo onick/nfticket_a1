@@ -1,7 +1,7 @@
 {
-  "name": "TIX 2.0 - Plataforma de Eventos",
-  "short_name": "TIX 2.0",
-  "description": "Descubre y compra tickets para los mejores eventos en República Dominicana",
+  "name": "NFTicket - Plataforma de Eventos",
+  "short_name": "NFTicket",
+  "description": "Descubre y compra tickets NFT para los mejores eventos en República Dominicana",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

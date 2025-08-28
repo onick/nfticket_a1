@@ -43,5 +43,26 @@ export const registerSchema = z.object({
   path: ['confirmPassword']
 })
 
+export const businessInfoSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Nombre de empresa debe tener al menos 2 caracteres')
+    .max(100, 'Nombre de empresa no puede exceder 100 caracteres'),
+  rnc: z
+    .string()
+    .regex(/^\d{9}$|^\d{11}$/, 'RNC debe tener 9 u 11 dígitos')
+    .optional(),
+  industry: z
+    .string()
+    .min(1, 'Selecciona una industria'),
+  website: z
+    .string()
+    .url('Sitio web debe ser una URL válida')
+    .optional()
+    .or(z.literal('')),
+  size: z.enum(['1-10', '11-50', '51-200', '201-1000', '1000+'])
+})
+
 export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
+export type BusinessInfoData = z.infer<typeof businessInfoSchema>

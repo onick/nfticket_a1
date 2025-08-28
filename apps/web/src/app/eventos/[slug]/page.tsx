@@ -18,7 +18,9 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { TicketSelector } from '@/components/events/TicketSelector'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { ShareModal } from '@/components/ui/ShareModal'
 import { CartSidebar } from '@/components/cart/CartSidebar'
+import { useFavorites } from '@/hooks/useFavorites'
 import { apiClient } from '@/lib/api'
 import { Event } from '@/types/api'
 
@@ -28,6 +30,9 @@ export default function EventDetailPage() {
   
   const [event, setEvent] = useState<Event | null>(null)
   const [loading, setLoading] = useState(true)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -65,6 +70,19 @@ export default function EventDetailPage() {
 
     fetchEvent()
   }, [slug])
+
+  const handleToggleFavorite = () => {
+    if (!event) return
+    
+    toggleFavorite({
+      id: event.id,
+      title: event.title,
+      slug: event.slug,
+      startDateTime: event.startDateTime,
+      venue: event.venue,
+      coverImage: event.coverImage || event.images?.[0] || ''
+    })
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -181,10 +199,22 @@ export default function EventDetailPage() {
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
-                      <button className="btn-ghost p-2">
-                        <Heart className="w-5 h-5" />
+                      <button 
+                        onClick={handleToggleFavorite}
+                        className={`btn-ghost p-2 transition-all duration-200 ${
+                          isFavorite(event.id) ? 'text-red-500 scale-110' : ''
+                        }`}
+                      >
+                        <Heart 
+                          className={`w-5 h-5 transition-all duration-200 ${
+                            isFavorite(event.id) ? 'fill-current' : ''
+                          }`} 
+                        />
                       </button>
-                      <button className="btn-ghost p-2">
+                      <button 
+                        onClick={() => setShareModalOpen(true)}
+                        className="btn-ghost p-2"
+                      >
                         <Share2 className="w-5 h-5" />
                       </button>
                     </div>
@@ -295,6 +325,22 @@ export default function EventDetailPage() {
 
       <Footer />
       <CartSidebar />
+
+      {/* Share Modal */}
+      {event && (
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          event={{
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            slug: event.slug,
+            startDateTime: event.startDateTime,
+            venue: event.venue
+          }}
+        />
+      )}
     </div>
   )
 }

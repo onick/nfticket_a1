@@ -3,7 +3,7 @@ const fastify = require('fastify')({ logger: true })
 
 // Register CORS
 fastify.register(require('@fastify/cors'), {
-  origin: ['http://localhost:3000'],
+  origin: ['http://localhost:3000', 'http://192.168.1.2:3000'],
   credentials: true
 })
 
@@ -118,7 +118,24 @@ const mockUsers = [
     firstName: 'Carlos',
     lastName: 'Organizador',
     avatar: null,
-    role: 'ORGANIZER'
+    role: 'ORGANIZER',
+    accountType: 'business',
+    isEmailVerified: true,
+    companyInfo: {
+      name: 'EventPro Solutions',
+      rnc: '12345678901',
+      industry: 'entertainment',
+      website: 'https://eventpro.do',
+      size: '11-50'
+    },
+    currentOrganizationId: 'org_1',
+    organizations: [
+      {
+        id: 'org_1',
+        name: 'EventPro Solutions',
+        role: 'ADMIN'
+      }
+    ]
   },
   {
     id: 'user_2',
@@ -126,7 +143,35 @@ const mockUsers = [
     firstName: 'María',
     lastName: 'Usuario',
     avatar: null,
-    role: 'USER'
+    role: 'USER',
+    accountType: 'individual',
+    isEmailVerified: true,
+    organizations: []
+  },
+  {
+    id: 'user_3',
+    email: 'empresa@tix.com',
+    firstName: 'Ana',
+    lastName: 'Empresaria',
+    avatar: null,
+    role: 'ORGANIZER',
+    accountType: 'business',
+    isEmailVerified: true,
+    companyInfo: {
+      name: 'Tech Events RD',
+      rnc: '98765432101',
+      industry: 'technology',
+      website: 'https://techevents.do',
+      size: '51-200'
+    },
+    currentOrganizationId: 'org_2',
+    organizations: [
+      {
+        id: 'org_2',
+        name: 'Tech Events RD',
+        role: 'ADMIN'
+      }
+    ]
   }
 ]
 
@@ -141,19 +186,37 @@ fastify.get('/health', async (request, reply) => {
 
 // Auth routes
 fastify.post('/api/v1/auth/register', async (request, reply) => {
-  const { email, password, firstName, lastName } = request.body
+  const { email, password, firstName, lastName, accountType, companyInfo } = request.body
   
-  const mockUser = {
+  const baseUser = {
     id: 'user_' + Date.now(),
     email,
     firstName,
     lastName,
     avatar: null,
+    accountType: accountType || 'individual',
+    isEmailVerified: false,
     preferredLanguage: 'es',
     timezone: 'America/Santo_Domingo',
     marketingOptIn: false,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    organizations: []
+  }
+
+  // Si es cuenta empresarial, agregar información de la empresa
+  if (accountType === 'business' && companyInfo) {
+    const orgId = 'org_' + Date.now()
+    baseUser.companyInfo = companyInfo
+    baseUser.currentOrganizationId = orgId
+    baseUser.organizations = [{
+      id: orgId,
+      name: companyInfo.name,
+      role: 'ADMIN'
+    }]
+    baseUser.role = 'ORGANIZER'
+  } else {
+    baseUser.role = 'USER'
   }
 
   const mockToken = 'mock_jwt_token_' + Date.now()
@@ -162,7 +225,7 @@ fastify.post('/api/v1/auth/register', async (request, reply) => {
     success: true,
     message: 'Usuario registrado exitosamente',
     data: {
-      user: mockUser,
+      user: baseUser,
       token: mockToken
     }
   }
@@ -532,6 +595,80 @@ fastify.get('/api/v1/tickets', async (request, reply) => {
       tickets: allTickets,
       total: allTickets.length
     }
+  }
+})
+
+// Create Event
+fastify.post('/api/v1/events', async (request, reply) => {
+  const authHeader = request.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return reply.status(401).send({
+      success: false,
+      message: 'Authorization required'
+    })
+  }
+
+  const eventData = request.body
+  
+  // Generate new event ID
+  const newEventId = `event_${Date.now()}`
+  const slug = eventData.title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+
+  // Create new event object
+  const newEvent = {
+    id: newEventId,
+    slug: `${slug}-${Date.now()}`,
+    title: eventData.title,
+    description: eventData.description,
+    longDescription: eventData.longDescription || eventData.description,
+    startDateTime: eventData.startDateTime,
+    endDateTime: eventData.endDateTime,
+    venue: eventData.venue || 'Online',
+    isOnline: eventData.isOnline || false,
+    onlineLink: eventData.onlineLink,
+    category: eventData.category,
+    tags: eventData.tags || [],
+    coverImage: eventData.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800',
+    images: eventData.images || [],
+    maxCapacity: eventData.maxCapacity || 100,
+    viewCount: 0,
+    shareCount: 0,
+    status: 'PUBLISHED',
+    organizerId: {
+      id: 'org_1',
+      firstName: 'Usuario',
+      lastName: 'Organizador',
+      email: 'organizador@nfticket.com'
+    },
+    ticketTypes: eventData.ticketTypes.map((ticket, index) => ({
+      _id: `${newEventId}_ticket_${index}`,
+      name: ticket.name,
+      description: ticket.description || '',
+      price: ticket.price,
+      currency: ticket.currency || 'DOP',
+      totalQuantity: ticket.totalQuantity,
+      availableQuantity: ticket.totalQuantity,
+      maxQuantityPerOrder: ticket.maxQuantityPerOrder || 5,
+      salesStartAt: ticket.salesStartAt || eventData.startDateTime,
+      salesEndAt: ticket.salesEndAt || eventData.endDateTime
+    })),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+
+  // Add to mock events array
+  mockEvents.push(newEvent)
+  
+  console.log(`✅ New event created: ${newEvent.title} (${newEvent.id})`)
+
+  return {
+    success: true,
+    message: 'Event created successfully',
+    data: newEvent
   }
 })
 

@@ -17,13 +17,25 @@ import {
   Save,
   Eye,
   Globe,
-  Monitor
+  Monitor,
+  Music,
+  Gamepad2,
+  Laptop,
+  Briefcase,
+  Palette,
+  UtensilsCrossed,
+  BookOpen,
+  Heart,
+  Theater,
+  UserCheck,
+  Ticket
 } from 'lucide-react'
 import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { useAuth } from '@/hooks/useAuth'
+import { apiClient } from '@/lib/api'
 
 interface TicketType {
   id: string
@@ -55,16 +67,16 @@ interface EventForm {
 }
 
 const categories = [
-  { id: 'music', name: 'Música', icon: '🎵' },
-  { id: 'sports', name: 'Deportes', icon: '⚽' },
-  { id: 'technology', name: 'Tecnología', icon: '💻' },
-  { id: 'business', name: 'Negocios', icon: '💼' },
-  { id: 'arts', name: 'Arte', icon: '🎨' },
-  { id: 'food', name: 'Gastronomía', icon: '🍽️' },
-  { id: 'education', name: 'Educación', icon: '📚' },
-  { id: 'health', name: 'Salud', icon: '🏥' },
-  { id: 'entertainment', name: 'Entretenimiento', icon: '🎭' },
-  { id: 'networking', name: 'Networking', icon: '🤝' }
+  { id: 'music', name: 'Música', icon: Music },
+  { id: 'sports', name: 'Deportes', icon: Gamepad2 },
+  { id: 'technology', name: 'Tecnología', icon: Laptop },
+  { id: 'business', name: 'Negocios', icon: Briefcase },
+  { id: 'arts', name: 'Arte', icon: Palette },
+  { id: 'food', name: 'Gastronomía', icon: UtensilsCrossed },
+  { id: 'education', name: 'Educación', icon: BookOpen },
+  { id: 'health', name: 'Salud', icon: Heart },
+  { id: 'entertainment', name: 'Entretenimiento', icon: Theater },
+  { id: 'networking', name: 'Networking', icon: UserCheck }
 ]
 
 export default function CreateEventPage() {
@@ -160,14 +172,44 @@ export default function CreateEventPage() {
 
     setLoading(true)
     try {
-      // In a real app, this would call the API
       console.log('Creating event:', form)
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Prepare event data for API
+      const eventData = {
+        title: form.title,
+        description: form.description,
+        longDescription: form.longDescription,
+        category: form.category,
+        tags: form.tags,
+        startDateTime: form.startDateTime,
+        endDateTime: form.endDateTime,
+        venue: form.venue,
+        isOnline: form.isOnline,
+        onlineLink: form.onlineLink,
+        maxCapacity: form.maxCapacity,
+        coverImage: form.coverImage,
+        images: form.images,
+        ticketTypes: form.ticketTypes.map(ticket => ({
+          name: ticket.name,
+          description: ticket.description,
+          price: ticket.price,
+          currency: ticket.currency,
+          totalQuantity: ticket.totalQuantity,
+          maxQuantityPerOrder: ticket.maxQuantityPerOrder,
+          salesStartAt: ticket.salesStartAt,
+          salesEndAt: ticket.salesEndAt
+        }))
+      }
+
+      // Call the API
+      const response = await apiClient.createEvent(eventData)
       
-      alert('¡Evento creado exitosamente!')
-      router.push('/dashboard')
+      if (response.success) {
+        alert('¡Evento creado exitosamente!')
+        router.push('/dashboard')
+      } else {
+        throw new Error(response.message || 'Error al crear el evento')
+      }
     } catch (error) {
       console.error('Error creating event:', error)
       alert('Error al crear el evento. Por favor intenta de nuevo.')
@@ -218,7 +260,7 @@ export default function CreateEventPage() {
                 Crear Evento
               </h1>
               <p className="text-gray-600 dark:text-gray-300">
-                Crea y publica tu evento en TIX 2.0
+                Crea y publica tu evento en NFTicket
               </p>
             </div>
           </div>
@@ -319,7 +361,7 @@ export default function CreateEventPage() {
                             : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                         }`}
                       >
-                        <span className="text-2xl mb-1">{category.icon}</span>
+                        <category.icon className="w-6 h-6 mb-1" />
                         <span className="text-sm font-medium">{category.name}</span>
                       </button>
                     ))}

@@ -50,7 +50,7 @@ class ApiClient {
     this.baseURL = API_BASE_URL
     // Try to get token from localStorage on client side
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('tix_token')
+      this.token = localStorage.getItem('nfticket_token')
     }
   }
 
@@ -58,9 +58,9 @@ class ApiClient {
     this.token = token
     if (typeof window !== 'undefined') {
       if (token) {
-        localStorage.setItem('tix_token', token)
+        localStorage.setItem('nfticket_token', token)
       } else {
-        localStorage.removeItem('tix_token')
+        localStorage.removeItem('nfticket_token')
       }
     }
   }

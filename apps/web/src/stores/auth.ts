@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiClient, User, LoginData, RegisterData } from '../lib/api'
+import { apiClient, LoginData, RegisterData } from '../lib/api'
+import { AuthUser, AccountType } from '../types/api'
 
 interface AuthState {
-  user: User | null
+  user: AuthUser | null
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
@@ -17,7 +18,11 @@ interface AuthActions {
   clearError: () => void
   checkAuth: () => Promise<void>
   refreshToken: () => Promise<void>
-  updateUser: (updates: Partial<User>) => void
+  updateUser: (updates: Partial<AuthUser>) => void
+  // Nuevas funciones para tipos de cuenta
+  isBusinessAccount: () => boolean
+  canAccessCorporateDashboard: () => boolean
+  getRedirectPath: () => string
 }
 
 type AuthStore = AuthState & AuthActions
@@ -143,15 +148,35 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      updateUser: (updates: Partial<User>) => {
+      updateUser: (updates: Partial<AuthUser>) => {
         const { user } = get()
         if (user) {
           set({ user: { ...user, ...updates } })
         }
       },
+
+      // Nuevas funciones para tipos de cuenta
+      isBusinessAccount: () => {
+        const { user } = get()
+        return user?.accountType === 'business'
+      },
+
+      canAccessCorporateDashboard: () => {
+        const { user, isAuthenticated } = get()
+        return user?.accountType === 'business' && isAuthenticated
+      },
+
+      getRedirectPath: () => {
+        const { user } = get()
+        if (!user) return '/'
+        
+        return user.accountType === 'business' 
+          ? '/dashboard/corporate' 
+          : '/dashboard'
+      },
     }),
     {
-      name: 'tix-auth',
+      name: 'nfticket-auth',
       partialize: (state) => ({
         user: state.user,
         token: state.token,

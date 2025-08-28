@@ -15,26 +15,26 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'TIX - Plataforma de Eventos República Dominicana',
-  description: 'La plataforma más avanzada para descubrir, crear y gestionar eventos en República Dominicana. Tickets, experiencias y comunidad en un solo lugar.',
-  keywords: ['eventos', 'tickets', 'conciertos', 'teatro', 'republica dominicana', 'santo domingo'],
-  authors: [{ name: 'TIX Team', url: 'https://tix.do' }],
-  creator: 'TIX',
-  publisher: 'TIX',
+  title: 'NFTicket - Plataforma de Eventos NFT República Dominicana',
+  description: 'La plataforma más avanzada para descubrir, crear y gestionar eventos con tickets NFT en República Dominicana. Experiencias únicas y comunidad en un solo lugar.',
+  keywords: ['eventos', 'tickets', 'nft', 'blockchain', 'conciertos', 'teatro', 'republica dominicana', 'santo domingo'],
+  authors: [{ name: 'NFTicket Team', url: 'https://nfticket.do' }],
+  creator: 'NFTicket',
+  publisher: 'NFTicket',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://tix.do'),
+  metadataBase: new URL('https://nfticket.do'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'TIX - Eventos en República Dominicana',
-    description: 'Descubre los mejores eventos en RD. Compra tickets de forma segura y rápida.',
-    url: 'https://tix.do',
-    siteName: 'TIX',
+    title: 'NFTicket - Eventos NFT en República Dominicana',
+    description: 'Descubre los mejores eventos en RD. Compra tickets NFT de forma segura y rápida.',
+    url: 'https://nfticket.do',
+    siteName: 'NFTicket',
     locale: 'es_DO',
     type: 'website',
     images: [
@@ -42,16 +42,16 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'TIX - Eventos RD',
+        alt: 'NFTicket - Eventos NFT RD',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TIX - Eventos República Dominicana',
-    description: 'La mejor plataforma de eventos en RD',
+    title: 'NFTicket - Eventos NFT República Dominicana',
+    description: 'La mejor plataforma de eventos NFT en RD',
     images: ['/twitter-image.jpg'],
-    creator: '@TixDO',
+    creator: '@NFTicketDO',
   },
   robots: {
     index: true,

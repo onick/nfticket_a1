@@ -14,13 +14,15 @@ import {
   Ticket,
   LogOut,
   Settings,
-  Plus
+  Plus,
+  Building2
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../stores/auth'
 import { useAuthModal } from '../../hooks/useAuthModal'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { useCartStore } from '../../stores/cart'
+import { PermissionGuard, usePermissionCheck } from '../../contexts/PermissionContext'
 
 const navigation = [
   { name: 'Eventos', href: '/eventos' },
@@ -29,7 +31,11 @@ const navigation = [
   { name: 'Empresas', href: '/empresas' },
 ]
 
-export function Header() {
+interface HeaderProps {
+  variant?: 'default' | 'overlay'
+}
+
+export function Header({ variant = 'default' }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -65,13 +71,30 @@ export function Header() {
     router.refresh()
   }
 
+  // Definir estilos según la variante
+  const getHeaderClasses = () => {
+    if (variant === 'overlay') {
+      return isScrolled 
+        ? 'glass-card shadow-lg backdrop-blur-md bg-white/90 dark:bg-gray-800/90' 
+        : 'bg-transparent'
+    }
+    return isScrolled 
+      ? 'glass-card shadow-lg backdrop-blur-md dark:bg-gray-800/90 dark:shadow-gray-900/10' 
+      : 'bg-transparent'
+  }
+
+  const getTextClasses = () => {
+    if (variant === 'overlay') {
+      return isScrolled 
+        ? 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+        : 'text-white hover:text-primary-200'
+    }
+    return 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+  }
+
   return (
     <header 
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'glass-card shadow-lg backdrop-blur-md dark:bg-gray-800/90 dark:shadow-gray-900/10' 
-          : 'bg-transparent'
-      }`}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${getHeaderClasses()}`}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -80,7 +103,7 @@ export function Header() {
             <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
               <Ticket className="w-5 h-5 text-white" />
             </div>
-            <span className="text-2xl font-bold gradient-text">TIX</span>
+            <span className="text-2xl font-bold gradient-text">NFTicket</span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -103,7 +126,7 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors"
+                className={`${getTextClasses()} font-medium transition-colors`}
               >
                 {item.name}
               </Link>
@@ -167,6 +190,16 @@ export function Header() {
                           <User className="w-4 h-4 mr-3" />
                           Mi Dashboard
                         </Link>
+                        <PermissionGuard requiredPermission="analytics:view">
+                          <Link
+                            href="/dashboard/corporate"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <Building2 className="w-4 h-4 mr-3" />
+                            Dashboard Corporativo
+                          </Link>
+                        </PermissionGuard>
                         <Link
                           href="/perfil"
                           className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

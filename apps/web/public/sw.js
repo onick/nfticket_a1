@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tix-v1.0.0'
+const CACHE_NAME = 'nfticket-v1.0.0'
 const OFFLINE_PAGE = '/offline'
 
 // Assets to cache on install

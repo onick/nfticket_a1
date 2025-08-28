@@ -18,7 +18,7 @@ interface LoginFormProps {
 export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-  const { login, isLoading, error, clearError } = useAuthStore()
+  const { login, isLoading, error, clearError, getRedirectPath } = useAuthStore()
 
   const {
     register,
@@ -33,7 +33,10 @@ export function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
       clearError()
       await login(data)
       onSuccess?.()
-      router.refresh()
+      
+      // Redirect based on account type
+      const redirectPath = getRedirectPath()
+      router.push(redirectPath)
     } catch (error) {
       // Error is handled by the store
       console.error('Login error:', error)
